@@ -145,8 +145,21 @@ export default function DashboardClient({ user, initialWatchlist, initialPortfol
   }
 
   const s = (name: string) => ({ fontSize: '9px', padding: '3px 9px', borderRadius: 2, cursor: 'pointer', border: `1px solid ${sector === name ? 'var(--gold)' : 'var(--border)'}`, color: sector === name ? 'var(--gold)' : 'var(--muted)', background: sector === name ? '#150f02' : 'transparent', fontFamily: 'var(--font-mono)', whiteSpace: 'nowrap' as const, transition: 'all .15s' })
-  const tabStyle = (t: Tab) => ({ padding: '.6rem 1rem', fontSize: '11px', color: activeTab === t ? 'var(--gold)' : 'var(--muted)', cursor: 'pointer', borderBottom: `2px solid ${activeTab === t ? 'var(--gold)' : 'transparent'}`, transition: 'all .15s', whiteSpace: 'nowrap' as const })
+const tabStyle = (t: Tab) => ({
+    padding: '.6rem 1rem', fontSize: '11px',
+    color: activeTab === t ? 'var(--gold)' : 'var(--muted)',
+    cursor: 'pointer',
+    borderBottom: '2px solid ' + (activeTab === t ? 'var(--gold)' : 'transparent'),
+    transition: 'all .15s', whiteSpace: 'nowrap' as const,
+  })
 
+  const tabLabel = (t: Tab) => {
+    if (t === 'market') return 'Market (' + filtered.length + ')'
+    if (t === 'watchlist') return 'Watchlist (' + watchlist.length + ')'
+    if (t === 'portfolio') return 'Portfolio (' + portfolio.length + ')'
+    if (t === 'charts') return 'Charts'
+    return 'AI Insights'
+  }
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
       {/* Header */}
@@ -178,10 +191,7 @@ export default function DashboardClient({ user, initialWatchlist, initialPortfol
       <div style={{ display: 'flex', padding: '0 1.5rem', borderBottom: '1px solid var(--border)', background: 'var(--s1)', overflowX: 'auto' }}>
         {(['market', 'watchlist', 'portfolio', 'charts', 'ai'] as Tab[]).map(t => (
           <div key={t} onClick={() => setActiveTab(t)} style={tabStyle(t)}>
-            {t === 'market' ? `Market (${filtered.length})` :
-             t === 'watchlist' ? `Watchlist (${watchlist.length})` :
-             t === 'portfolio' ? `Portfolio (${portfolio.length})` :
-             t === 'charts' ? 'Charts' : 'AI Insights'}
+           {tabLabel(t)}
           </div>
         ))}
       </div>
