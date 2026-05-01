@@ -176,11 +176,8 @@ const tabStyle = (t: Tab) => ({
               <div className="live-dot" style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--green)' }} />
               LIVE
             </div>
-        LIVE
-            </div>
-          <div key={t} onClick={() => setActiveTab(t)} style={tabStyle(t)}>
-  {tabLabel(t)}
-</div>
+          </div>
+        </div>
       </div>
 
       {/* Index Bar */}
