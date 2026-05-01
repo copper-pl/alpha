@@ -102,7 +102,7 @@ export default function ChartPanel({ tickers, selectedTicker, onSelectTicker, cu
               <CartesianGrid strokeDasharray="3 3" stroke="#12121a" />
               <XAxis dataKey="date" tick={{ fill: '#555566', fontSize: 9 }} tickLine={false} tickFormatter={d => d.slice(5)} />
               <YAxis orientation="right" tick={{ fill: '#555566', fontSize: 9 }} tickLine={false} tickFormatter={v => '$' + v.toFixed(0)} domain={['auto', 'auto']} />
-              <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => ['$' + v.toFixed(2), 'Close']} />
+              <Tooltip contentStyle={tooltipStyle} formatter={(v: any) => ['$' + v.toFixed(2), 'Close']} />
               <Line type="monotone" dataKey="close" stroke={lineColor} strokeWidth={2} dot={false} activeDot={{ r: 4, fill: lineColor }} />
             </LineChart>
           </ResponsiveContainer>
@@ -113,7 +113,7 @@ export default function ChartPanel({ tickers, selectedTicker, onSelectTicker, cu
             <BarChart data={history} margin={{ top: 0, right: 60, left: 0, bottom: 0 }}>
               <XAxis dataKey="date" tick={false} axisLine={false} />
               <YAxis orientation="right" tick={{ fill: '#555566', fontSize: 9 }} tickLine={false} tickFormatter={v => v >= 1e6 ? (v / 1e6).toFixed(0) + 'M' : v >= 1e3 ? (v / 1e3).toFixed(0) + 'K' : String(v)} />
-              <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => [(v / 1e6).toFixed(1) + 'M', 'Volume']} />
+              <Tooltip contentStyle={tooltipStyle} formatter={(v: any) => [(v / 1e6).toFixed(1) + 'M', 'Volume']} />
               <Bar dataKey="volume" fill={lineColor + '66'} radius={[2, 2, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
