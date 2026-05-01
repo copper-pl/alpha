@@ -1,0 +1,42 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #08080e;
+  --s1: #0f0f16;
+  --s2: #14141c;
+  --s3: #1a1a24;
+  --border: #252530;
+  --gold: #f0b429;
+  --green: #22c55e;
+  --red: #ef4444;
+  --blue: #60a5fa;
+  --purple: #a78bfa;
+  --text: #eeeef5;
+  --muted: #777788;
+  --font-mono: var(--font-mono, 'IBM Plex Mono', monospace);
+  --font-display: var(--font-display, 'Syne', sans-serif);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-mono);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: var(--s1); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+/* Flash animations */
+@keyframes flash-up { 0% { background: #0a2a14; } 100% { background: transparent; } }
+@keyframes flash-dn { 0% { background: #2a0a0a; } 100% { background: transparent; } }
+@keyframes pulse-dot { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: .3; transform: scale(.7); } }
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+.flash-up { animation: flash-up 0.5s ease-out; }
+.flash-dn { animation: flash-dn 0.5s ease-out; }
+.live-dot { animation: pulse-dot 1.4s ease-in-out infinite; }
+.spin { animation: spin 0.8s linear infinite; }
