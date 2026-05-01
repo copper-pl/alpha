@@ -176,12 +176,9 @@ const tabStyle = (t: Tab) => ({
               <div className="live-dot" style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--green)' }} />
               LIVE
             </div>
-          )}
-          <div style={{ fontSize: '10px', color: 'var(--muted)' }}>NYSE {clock}</div>
-          <button onClick={fetchQuotes} style={{ fontSize: '9px', padding: '3px 8px', background: 'var(--s3)', border: '1px solid var(--border)', color: 'var(--muted)', borderRadius: 2, cursor: 'pointer' }}>↻ Refresh</button>
-          <span style={{ fontSize: '10px', color: 'var(--muted)' }}>{user.email}</span>
-          <button onClick={handleSignOut} style={{ fontSize: '9px', padding: '3px 8px', background: 'var(--s3)', border: '1px solid var(--border)', color: 'var(--muted)', borderRadius: 2, cursor: 'pointer' }}>Sign out</button>
-        </div>
+          <div key={t} onClick={() => setActiveTab(t)} style={tabStyle(t)}>
+  {tabLabel(t)}
+</div>
       </div>
 
       {/* Index Bar */}
