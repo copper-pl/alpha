@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import type { StockQuote, WatchlistItem, Position, PositionWithQuote, SortKey, SortDir } from '@/types'
 import type { User } from '@supabase/supabase-js'
 import { createClient } from '@/lib/supabase/client'
@@ -13,7 +13,7 @@ import AIPanel from '@/components/market/AIPanel'
 
 type Tab = 'market' | 'watchlist' | 'portfolio' | 'charts' | 'ai'
 const SECTORS = ['All','Technology','Finance','Healthcare','Energy','Consumer','Industrial','Real Estate','Utilities','Materials','Telecom']
-const REFRESH_INTERVAL = 30_000 // 30 seconds
+const REFRESH_INTERVAL = 30000
 
 interface Props {
   user: User
@@ -32,16 +32,13 @@ export default function DashboardClient({ user, initialWatchlist, initialPortfol
   const [sortDir, setSortDir] = useState<SortDir>('desc')
   const [page, setPage] = useState(1)
   const PAGE_SIZE = 20
-
   const [watchlist, setWatchlist] = useState<string[]>(initialWatchlist.map(w => w.ticker))
   const [portfolio, setPortfolio] = useState<Position[]>(initialPortfolio)
   const [selectedChartTicker, setSelectedChartTicker] = useState('AAPL')
-
   const [clock, setClock] = useState('')
   const supabase = createClient()
   const router = useRouter()
 
-  // Clock
   useEffect(() => {
     const tick = () => setClock(new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' }))
     tick()
@@ -49,7 +46,6 @@ export default function DashboardClient({ user, initialWatchlist, initialPortfol
     return () => clearInterval(id)
   }, [])
 
-  // Fetch quotes
   const fetchQuotes = useCallback(async () => {
     try {
       const res = await fetch('/api/stocks')
@@ -71,7 +67,6 @@ export default function DashboardClient({ user, initialWatchlist, initialPortfol
     return () => clearInterval(id)
   }, [fetchQuotes])
 
-  // Filtering + sorting
   const filtered = quotes
     .filter(q => sector === 'All' || q.sector === sector)
     .filter(q => {
@@ -96,7 +91,6 @@ export default function DashboardClient({ user, initialWatchlist, initialPortfol
     setPage(1)
   }
 
-  // Portfolio with live quotes
   const portfolioWithQuotes: PositionWithQuote[] = portfolio.map(pos => {
     const quote = quotes.find(q => q.ticker === pos.ticker) ?? null
     const price = quote?.price ?? pos.avg_cost
@@ -107,35 +101,39 @@ export default function DashboardClient({ user, initialWatchlist, initialPortfol
     return { ...pos, quote, marketValue, gainLoss, gainLossPercent, dailyPnL }
   })
 
-  // Watchlist actions
   const toggleWatch = async (ticker: string) => {
     const isOn = watchlist.includes(ticker)
     setWatchlist(prev => isOn ? prev.filter(t => t !== ticker) : [...prev, ticker])
     if (isOn) {
-      await fetch(`/api/watchlist?ticker=${ticker}`, { method: 'DELETE' })
+      await fetch('/api/watchlist?ticker=' + ticker, { method: 'DELETE' })
     } else {
       await fetch('/api/watchlist', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ticker }) })
     }
   }
 
-  // Portfolio actions
   const addPosition = async (ticker: string, shares: number, avg_cost: number) => {
     const res = await fetch('/api/portfolio', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ ticker, shares, avg_cost }),
     })
     const json = await res.json()
     if (json.data) {
       setPortfolio(prev => {
         const existing = prev.findIndex(p => p.ticker === ticker)
-        if (existing >= 0) { const updated = [...prev]; updated[existing] = json.data; return updated }
+        if (existing >= 0) {
+          const updated = [...prev]
+          updated[existing] = json.data
+          return updated
+        }
         return [json.data, ...prev]
       })
     }
     return json
   }
+
   const removePosition = async (ticker: string) => {
-    await fetch(`/api/portfolio?ticker=${ticker}`, { method: 'DELETE' })
+    await fetch('/api/portfolio?ticker=' + ticker, { method: 'DELETE' })
     setPortfolio(prev => prev.filter(p => p.ticker !== ticker))
   }
 
@@ -144,25 +142,39 @@ export default function DashboardClient({ user, initialWatchlist, initialPortfol
     router.push('/login')
   }
 
-  const s = (name: string) => ({ fontSize: '9px', padding: '3px 9px', borderRadius: 2, cursor: 'pointer', border: `1px solid ${sector === name ? 'var(--gold)' : 'var(--border)'}`, color: sector === name ? 'var(--gold)' : 'var(--muted)', background: sector === name ? '#150f02' : 'transparent', fontFamily: 'var(--font-mono)', whiteSpace: 'nowrap' as const, transition: 'all .15s' })
-const tabStyle = (t: Tab) => ({
-    padding: '.6rem 1rem', fontSize: '11px',
-    color: activeTab === t ? 'var(--gold)' : 'var(--muted)',
-    cursor: 'pointer',
-    borderBottom: '2px solid ' + (activeTab === t ? 'var(--gold)' : 'transparent'),
-    transition: 'all .15s', whiteSpace: 'nowrap' as const,
+  const chipStyle = (name: string) => ({
+    fontSize: '9px',
+    padding: '3px 9px',
+    borderRadius: 2,
+    cursor: 'pointer' as const,
+    border: '1px solid ' + (sector === name ? 'var(--gold)' : 'var(--border)'),
+    color: sector === name ? 'var(--gold)' : 'var(--muted)',
+    background: sector === name ? '#150f02' : 'transparent',
+    fontFamily: 'var(--font-mono)',
+    whiteSpace: 'nowrap' as const,
   })
 
-  const tabLabel = (t: Tab) => {
+  const tabStyle = (t: Tab) => ({
+    padding: '.6rem 1rem',
+    fontSize: '11px',
+    color: activeTab === t ? 'var(--gold)' : 'var(--muted)',
+    cursor: 'pointer' as const,
+    borderBottom: '2px solid ' + (activeTab === t ? 'var(--gold)' : 'transparent'),
+    transition: 'all .15s',
+    whiteSpace: 'nowrap' as const,
+  })
+
+  const tabLabel = (t: Tab): string => {
     if (t === 'market') return 'Market (' + filtered.length + ')'
     if (t === 'watchlist') return 'Watchlist (' + watchlist.length + ')'
     if (t === 'portfolio') return 'Portfolio (' + portfolio.length + ')'
     if (t === 'charts') return 'Charts'
     return 'AI Insights'
   }
+
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)' }}>
-      {/* Header */}
+
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.85rem 1.5rem', borderBottom: '1px solid var(--border)' }}>
         <div style={{ fontFamily: 'var(--font-display)', fontSize: '1.05rem', fontWeight: 700, color: 'var(--gold)' }}>
           MARKET<span style={{ color: 'var(--muted)', fontWeight: 400 }}>PULSE</span>
@@ -172,29 +184,27 @@ const tabStyle = (t: Tab) => ({
           {loading ? (
             <span style={{ fontSize: '10px', color: 'var(--muted)' }}>Refreshing...</span>
           ) : (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: '10px', color: 'var(--green)' }}>
-              <div className="live-dot" style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--green)' }} />
-              LIVE
-            </div>
-          </div>
+            <span style={{ fontSize: '10px', color: 'var(--green)' }}>LIVE</span>
+          )}
+          <span style={{ fontSize: '10px', color: 'var(--muted)' }}>NYSE {clock}</span>
+          <button onClick={fetchQuotes} style={{ fontSize: '9px', padding: '3px 8px', background: 'var(--s3)', border: '1px solid var(--border)', color: 'var(--muted)', borderRadius: 2, cursor: 'pointer' }}>Refresh</button>
+          <span style={{ fontSize: '10px', color: 'var(--muted)' }}>{user.email}</span>
+          <button onClick={handleSignOut} style={{ fontSize: '9px', padding: '3px 8px', background: 'var(--s3)', border: '1px solid var(--border)', color: 'var(--muted)', borderRadius: 2, cursor: 'pointer' }}>Sign out</button>
         </div>
       </div>
 
-      {/* Index Bar */}
       <IndexBar quotes={quotes} />
 
-      {/* Tabs */}
       <div style={{ display: 'flex', padding: '0 1.5rem', borderBottom: '1px solid var(--border)', background: 'var(--s1)', overflowX: 'auto' }}>
         {(['market', 'watchlist', 'portfolio', 'charts', 'ai'] as Tab[]).map(t => (
           <div key={t} onClick={() => setActiveTab(t)} style={tabStyle(t)}>
-           {tabLabel(t)}
+            {tabLabel(t)}
           </div>
         ))}
       </div>
 
-      {/* Market Tab */}
       {activeTab === 'market' && (
-        <>
+        <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '.6rem 1.5rem', borderBottom: '1px solid var(--border)', background: 'var(--s1)' }}>
             <input
               value={search}
@@ -202,11 +212,15 @@ const tabStyle = (t: Tab) => ({
               placeholder="Search ticker or company..."
               style={{ background: 'var(--s3)', border: '1px solid var(--border)', color: 'var(--text)', fontFamily: 'var(--font-mono)', fontSize: '11px', padding: '5px 10px', borderRadius: 3, outline: 'none', width: 220 }}
             />
-            {lastUpdated && <span style={{ fontSize: '9px', color: 'var(--muted)', marginLeft: 'auto' }}>Updated {lastUpdated.toLocaleTimeString()}</span>}
+            {lastUpdated && (
+              <span style={{ fontSize: '9px', color: 'var(--muted)', marginLeft: 'auto' }}>
+                Updated {lastUpdated.toLocaleTimeString()}
+              </span>
+            )}
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '.55rem 1.5rem', borderBottom: '1px solid var(--border)', overflowX: 'auto', flexWrap: 'nowrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '.55rem 1.5rem', borderBottom: '1px solid var(--border)', overflowX: 'auto' }}>
             {SECTORS.map(sec => (
-              <button key={sec} style={s(sec)} onClick={() => { setSector(sec); setPage(1) }}>{sec}</button>
+              <button key={sec} style={chipStyle(sec)} onClick={() => { setSector(sec); setPage(1) }}>{sec}</button>
             ))}
           </div>
           <StockTable
@@ -218,24 +232,21 @@ const tabStyle = (t: Tab) => ({
             sortDir={sortDir}
             onSelectChart={t => { setSelectedChartTicker(t); setActiveTab('charts') }}
           />
-          {/* Pagination */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '.5rem 1.5rem', borderTop: '1px solid var(--border)', fontSize: '10px', color: 'var(--muted)' }}>
-            <button disabled={page <= 1} onClick={() => setPage(p => p - 1)} style={{ background: 'var(--s3)', border: '1px solid var(--border)', color: 'var(--muted)', fontFamily: 'var(--font-mono)', fontSize: '10px', padding: '3px 10px', borderRadius: 2, cursor: page <= 1 ? 'not-allowed' : 'pointer', opacity: page <= 1 ? 0.4 : 1 }}>← Prev</button>
+            <button disabled={page <= 1} onClick={() => setPage(p => p - 1)} style={{ background: 'var(--s3)', border: '1px solid var(--border)', color: 'var(--muted)', fontFamily: 'var(--font-mono)', fontSize: '10px', padding: '3px 10px', borderRadius: 2, cursor: page <= 1 ? 'not-allowed' : 'pointer', opacity: page <= 1 ? 0.4 : 1 }}>Prev</button>
             <span>Page {page} of {totalPages}</span>
-            <button disabled={page >= totalPages} onClick={() => setPage(p => p + 1)} style={{ background: 'var(--s3)', border: '1px solid var(--border)', color: 'var(--muted)', fontFamily: 'var(--font-mono)', fontSize: '10px', padding: '3px 10px', borderRadius: 2, cursor: page >= totalPages ? 'not-allowed' : 'pointer', opacity: page >= totalPages ? 0.4 : 1 }}>Next →</button>
+            <button disabled={page >= totalPages} onClick={() => setPage(p => p + 1)} style={{ background: 'var(--s3)', border: '1px solid var(--border)', color: 'var(--muted)', fontFamily: 'var(--font-mono)', fontSize: '10px', padding: '3px 10px', borderRadius: 2, cursor: page >= totalPages ? 'not-allowed' : 'pointer', opacity: page >= totalPages ? 0.4 : 1 }}>Next</button>
             <span style={{ marginLeft: 'auto' }}>{PAGE_SIZE} per page · {filtered.length} total</span>
           </div>
-          <AIPanel stocks={quotes.sort((a,b) => b.changePercent - a.changePercent).slice(0,10)} mode="market" />
-        </>
+          <AIPanel stocks={quotes.sort((a, b) => b.changePercent - a.changePercent).slice(0, 10)} mode="market" />
+        </div>
       )}
 
-      {/* Watchlist Tab */}
       {activeTab === 'watchlist' && (
-        <>
+        <div>
           {watchlistQuotes.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '4rem 1.5rem', color: 'var(--muted)', fontSize: '12px' }}>
-              No stocks in watchlist.<br />
-              <span style={{ fontSize: '10px', marginTop: 6, display: 'block' }}>Go to Market and click ☆ to add stocks.</span>
+              No stocks in watchlist. Go to Market and click the star to add stocks.
             </div>
           ) : (
             <StockTable
@@ -249,10 +260,9 @@ const tabStyle = (t: Tab) => ({
             />
           )}
           <AIPanel stocks={watchlistQuotes} mode="market" title="Watchlist Intelligence" />
-        </>
+        </div>
       )}
 
-      {/* Portfolio Tab */}
       {activeTab === 'portfolio' && (
         <PortfolioPanel
           positions={portfolioWithQuotes}
@@ -262,7 +272,6 @@ const tabStyle = (t: Tab) => ({
         />
       )}
 
-      {/* Charts Tab */}
       {activeTab === 'charts' && (
         <ChartPanel
           tickers={quotes.map(q => ({ ticker: q.ticker, name: q.name }))}
@@ -272,18 +281,18 @@ const tabStyle = (t: Tab) => ({
         />
       )}
 
-      {/* AI Insights Tab */}
       {activeTab === 'ai' && (
         <div style={{ padding: '1rem 1.5rem' }}>
-          <AIPanel stocks={quotes.sort((a,b) => b.changePercent - a.changePercent).slice(0,15)} mode="market" title="Market Overview" expanded />
+          <AIPanel stocks={quotes.sort((a, b) => b.changePercent - a.changePercent).slice(0, 15)} mode="market" title="Market Overview" expanded />
           <div style={{ marginTop: '1rem' }}>
             <AIPanel stocks={quotes} mode="sector" title="Sector Rotation Analysis" expanded />
           </div>
           <div style={{ marginTop: '1rem' }}>
-            <AIPanel stocks={quotes.sort((a,b) => b.changePercent - a.changePercent).slice(0,10)} mode="screener" title="AI Stock Screener" expanded />
+            <AIPanel stocks={quotes.sort((a, b) => b.changePercent - a.changePercent).slice(0, 10)} mode="screener" title="AI Stock Screener" expanded />
           </div>
         </div>
       )}
+
     </div>
   )
 }
